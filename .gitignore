@@ -1,0 +1,12 @@
+target/
+*.class
+*.log
+
+# IntelliJ
+.idea/
+*.iml
+out/
+
+# local secrets
+.env
+application-local.properties
