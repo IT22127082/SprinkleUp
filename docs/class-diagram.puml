@@ -1,0 +1,148 @@
+@startuml SprinkleUp
+' Paste into https://www.plantuml.com/plantuml or use IntelliJ's PlantUML plugin to export a PNG.
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+package model {
+  abstract class BaseEntity {
+    - id : Long
+    - createdAt : LocalDateTime
+    - updatedAt : LocalDateTime
+    + getId() : Long
+    + isNew() : boolean
+    + {abstract} getDisplayName() : String
+  }
+
+  abstract class Product {
+    - name : String
+    - description : String
+    - basePrice : BigDecimal
+    - stock : int
+    - available : boolean
+    + {abstract} getType() : ProductType
+    + {abstract} getUnitPrice() : BigDecimal
+    + {abstract} getSpecs() : String
+    + {abstract} applySpecs(form : ProductForm)
+    + {abstract} fillSpecs(form : ProductForm)
+    + priceFor(quantity : int) : BigDecimal
+    + isInStock() : boolean
+    + reduceStock(quantity : int)
+    + restock(quantity : int)
+  }
+
+  class Cake {
+    - weightKg : Double
+    - flavour : String
+    - eggless : Boolean
+    + getUnitPrice() : BigDecimal
+  }
+  class Cupcake {
+    - piecesPerBox : Integer
+    - frosting : String
+    + getUnitPrice() : BigDecimal
+  }
+  class Bread {
+    - weightGrams : Integer
+    - sliced : Boolean
+    + getUnitPrice() : BigDecimal
+  }
+  class Pastry {
+    - filling : String
+    - servedWarm : Boolean
+    + getUnitPrice() : BigDecimal
+  }
+
+  class Customer {
+    - fullName : String
+    - email : String
+    - phone : String
+    - address : String
+    + updateDetails(source : Customer)
+  }
+
+  class Order {
+    - status : OrderStatus
+    - pickupDate : LocalDate
+    - notes : String
+    + addItem(product : Product, quantity : int)
+    + getTotal() : BigDecimal
+    + changeStatus(newStatus : OrderStatus)
+    + returnItemsToStock()
+    + getItems() : List<OrderItem> {read-only}
+  }
+
+  class OrderItem {
+    - productName : String
+    - quantity : int
+    - unitPrice : BigDecimal
+    + getLineTotal() : BigDecimal
+  }
+
+  enum ProductType {
+    CAKE
+    CUPCAKE
+    BREAD
+    PASTRY
+    + newProduct() : Product
+  }
+
+  enum OrderStatus {
+    PENDING
+    BAKING
+    READY
+    DELIVERED
+    CANCELLED
+    + isClosed() : boolean
+  }
+}
+
+package service {
+  interface "CrudService<T>" as CrudService {
+    + findAll() : List<T>
+    + findById(id : Long) : T
+    + count() : long
+    + delete(id : Long)
+  }
+  abstract class "AbstractCrudService<T extends BaseEntity>" as AbstractCrudService {
+    - repository : JpaRepository<T, Long>
+    # {abstract} entityName() : String
+    # save(entity : T) : T
+  }
+  class ProductService {
+    + create(form : ProductForm) : Product
+    + update(id : Long, form : ProductForm) : Product
+    + delete(id : Long)
+  }
+  class CustomerService {
+    + create(c : Customer) : Customer
+    + update(id : Long, c : Customer) : Customer
+    + delete(id : Long)
+  }
+  class OrderService {
+    + placeOrder(form : OrderForm) : Order
+    + update(id, status, pickupDate, notes) : Order
+    + delete(id : Long)
+  }
+}
+
+BaseEntity <|-- Product
+BaseEntity <|-- Customer
+BaseEntity <|-- Order
+Product <|-- Cake
+Product <|-- Cupcake
+Product <|-- Bread
+Product <|-- Pastry
+
+Customer "1" <-- "0..*" Order : placed by
+Order "1" *-- "1..*" OrderItem : contains
+OrderItem "0..*" --> "0..1" Product : refers to
+Order --> OrderStatus
+Product ..> ProductType
+
+CrudService <|.. AbstractCrudService
+AbstractCrudService <|-- ProductService
+AbstractCrudService <|-- CustomerService
+AbstractCrudService <|-- OrderService
+OrderService --> ProductService
+OrderService --> CustomerService
+@enduml
