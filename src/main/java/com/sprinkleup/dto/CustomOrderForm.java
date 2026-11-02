@@ -36,7 +36,7 @@ public class CustomOrderForm {
 
     private boolean eggless;
 
-    @NotBlank(message = "Tell us about the design you'd like")
+    @NotBlank(message = "Tell us about the design you want")
     @Size(max = 1000, message = "Keep the description under 1000 characters")
     private String design;
 

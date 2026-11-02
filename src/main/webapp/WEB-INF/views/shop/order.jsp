@@ -33,6 +33,16 @@
     <div class="col-lg-5">
         <div class="su-panel su-sticky">
             <h2 class="h5 mb-3"><i class="bi bi-person me-1"></i> Your details</h2>
+            <c:choose>
+            <c:when test="${not empty currentUser and not currentUser.admin}">
+            <div class="su-me mb-3">
+                <strong>${fn:escapeXml(currentUser.fullName)}</strong><br>
+                <span class="small">${fn:escapeXml(currentUser.email)} · ${fn:escapeXml(currentUser.phone)}</span>
+                <div class="small mt-1"><a href="${ctx}/account/edit">Change details</a></div>
+            </div>
+            </c:when>
+            <c:otherwise>
+            <p class="small text-muted mb-3">Have an account? <a href="${ctx}/login?next=/order">Sign in</a> to order faster and track it.</p>
             <div class="mb-3">
                 <label class="form-label" for="fullName">Full name</label>
                 <input class="form-control" id="fullName" name="fullName" required maxlength="100" value="${fn:escapeXml(orderForm.fullName)}">
@@ -51,6 +61,8 @@
                 <label class="form-label" for="address">Address <span class="text-muted small">(optional)</span></label>
                 <input class="form-control" id="address" name="address" maxlength="255" value="${fn:escapeXml(orderForm.address)}">
             </div>
+            </c:otherwise>
+            </c:choose>
             <div class="mb-3">
                 <label class="form-label" for="pickupDate">Pickup date</label>
                 <input class="form-control" type="date" id="pickupDate" name="pickupDate" min="${today}" value="${orderForm.pickupDate}">

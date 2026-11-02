@@ -12,17 +12,22 @@
     </div>
 </div>
 
-<div class="row row-cols-2 row-cols-lg-4 g-3 mb-4">
+<div class="row row-cols-2 row-cols-md-3 row-cols-xl-5 g-3 mb-4">
     <div class="col"><div class="su-stat">
         <span class="su-stat-label">Revenue</span>
         <span class="su-stat-value">Rs. <fmt:formatNumber value="${revenue}" pattern="#,##0"/></span>
-        <span class="su-stat-note">excluding cancelled orders</span>
+        <span class="su-stat-note">orders + accepted custom cakes</span>
     </div></div>
     <div class="col"><div class="su-stat">
         <span class="su-stat-label">Open orders</span>
         <span class="su-stat-value">${openOrders}</span>
         <span class="su-stat-note">out of ${orderCount} placed</span>
     </div></div>
+    <div class="col"><a class="su-stat su-stat-link" href="${ctx}/admin/custom-orders?status=REQUESTED">
+        <span class="su-stat-label">Custom cakes</span>
+        <span class="su-stat-value">${awaitingQuote}</span>
+        <span class="su-stat-note ${awaitingQuote > 0 ? 'text-danger' : ''}">awaiting a quote · ${customCount} total</span>
+    </a></div>
     <div class="col"><div class="su-stat">
         <span class="su-stat-label">Products</span>
         <span class="su-stat-value">${productCount}</span>

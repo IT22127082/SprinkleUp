@@ -11,7 +11,10 @@
             <h1 class="su-hero-title">Life is short.<br>Add more <em>sprinkles</em> <i class="bi bi-heart-fill su-title-heart" aria-hidden="true"></i></h1>
             <p class="lead mb-4">Celebration cakes, cupcakes, warm breads and pastries from the SprinkleUp kitchen.
                 Order online and pick up when it suits you.</p>
-            <a class="btn btn-su btn-lg" href="${ctx}/order"><i class="bi bi-bag-heart me-1"></i> Start an order</a>
+            <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-su btn-lg" href="${ctx}/order"><i class="bi bi-bag-heart me-1"></i> Start an order</a>
+                <a class="btn btn-outline-su btn-lg bg-white" href="${ctx}/custom-orders/new"><i class="bi bi-stars me-1"></i> Design a custom cake</a>
+            </div>
         </div>
         <div class="col-lg-5 d-none d-lg-block">
             <div class="su-hero-art">

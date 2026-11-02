@@ -25,7 +25,12 @@
             </c:if>
             <c:forEach var="cu" items="${customers}">
                 <tr>
-                    <td class="fw-semibold">${fn:escapeXml(cu.fullName)}</td>
+                    <td class="fw-semibold">${fn:escapeXml(cu.fullName)}
+                        <c:choose>
+                            <c:when test="${cu.hasAccount()}"><span class="badge rounded-pill text-bg-light border ms-1" title="Has an online account"><i class="bi bi-person-check"></i> Account</span></c:when>
+                            <c:otherwise><span class="badge rounded-pill text-bg-light border ms-1 text-muted" title="Ordered without an account">Guest</span></c:otherwise>
+                        </c:choose>
+                    </td>
                     <td><a href="mailto:${fn:escapeXml(cu.email)}">${fn:escapeXml(cu.email)}</a></td>
                     <td class="text-nowrap">${fn:escapeXml(cu.phone)}</td>
                     <td class="small text-muted">${fn:escapeXml(cu.address)}</td>
