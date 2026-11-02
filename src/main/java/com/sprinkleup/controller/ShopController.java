@@ -1,6 +1,9 @@
 package com.sprinkleup.controller;
 
+import com.sprinkleup.config.AuthInterceptor;
 import com.sprinkleup.dto.OrderForm;
+import com.sprinkleup.model.Customer;
+import com.sprinkleup.model.User;
 import com.sprinkleup.model.Order;
 import com.sprinkleup.model.Product;
 import com.sprinkleup.model.ProductType;
@@ -44,7 +47,11 @@ public class ShopController {
     }
 
     @PostMapping("/order")
-    public String placeOrder(@ModelAttribute("orderForm") OrderForm form, Model model, RedirectAttributes redirect) {
+    public String placeOrder(@ModelAttribute("orderForm") OrderForm form,
+                             @RequestAttribute(name = AuthInterceptor.CURRENT_USER, required = false) User currentUser,
+                             Model model, RedirectAttributes redirect) {
+        // Never trust a customer id sent by the browser: signed-in customers order as themselves, everyone else as a guest
+        form.setCustomerId(currentUser instanceof Customer me ? me.getId() : null);
         try {
             Order order = orderService.placeOrder(form);
             redirect.addFlashAttribute("orderId", order.getId());

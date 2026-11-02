@@ -1,10 +1,10 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
-<jsp:include page="/WEB-INF/views/common/header.jsp"><jsp:param name="title" value="Not found"/></jsp:include>
+<jsp:include page="/WEB-INF/views/common/header.jsp"><jsp:param name="title" value="${heading}"/></jsp:include>
 
 <div class="su-panel su-thanks mx-auto text-center">
     <img class="su-thanks-logo" src="${ctx}/images/logo.png" alt="">
-    <h1 class="su-page-title">Crumbs! Nothing here.</h1>
+    <h1 class="su-page-title">${fn:escapeXml(heading)}</h1>
     <p class="text-muted">${fn:escapeXml(message)}</p>
     <a class="btn btn-su" href="${ctx}/">Back to the menu</a>
 </div>

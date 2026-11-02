@@ -29,12 +29,43 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="mainNav">
-            <ul class="navbar-nav ms-auto gap-md-2">
+            <ul class="navbar-nav ms-auto gap-md-1 align-items-md-center">
                 <li class="nav-item"><a class="nav-link ${activePage == 'shop' ? 'active' : ''}" href="${ctx}/">Menu</a></li>
                 <li class="nav-item"><a class="nav-link ${activePage == 'order' ? 'active' : ''}" href="${ctx}/order">Order</a></li>
-                <li class="nav-item">
-                    <a class="nav-link ${isAdmin ? 'active' : ''}" href="${ctx}/admin"><i class="bi bi-shop-window me-1"></i>Bakery admin</a>
-                </li>
+                <c:if test="${empty currentUser or not currentUser.admin}">
+                    <li class="nav-item"><a class="nav-link ${activePage == 'custom' ? 'active' : ''}" href="${ctx}/custom-orders/new">Custom cake</a></li>
+                </c:if>
+                <c:choose>
+                    <c:when test="${empty currentUser}">
+                        <li class="nav-item ms-md-2"><a class="btn btn-sm btn-su" href="${ctx}/login"><i class="bi bi-person me-1"></i>Sign in</a></li>
+                    </c:when>
+                    <c:otherwise>
+                        <li class="nav-item dropdown ms-md-2">
+                            <a class="nav-link dropdown-toggle su-user ${activePage == 'account' or isAdmin ? 'active' : ''}" href="#" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi ${currentUser.admin ? 'bi-shop-window' : 'bi-person-heart'} me-1"></i>${fn:escapeXml(currentUser.firstName)}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><span class="dropdown-item-text small text-muted">${fn:escapeXml(currentUser.email)}<br>${currentUser.role.label}</span></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <c:choose>
+                                    <c:when test="${currentUser.admin}">
+                                        <li><a class="dropdown-item" href="${ctx}/admin"><i class="bi bi-speedometer2 me-2"></i>Bakery admin</a></li>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <li><a class="dropdown-item" href="${ctx}/account"><i class="bi bi-bag-heart me-2"></i>My orders</a></li>
+                                        <li><a class="dropdown-item" href="${ctx}/account/edit"><i class="bi bi-gear me-2"></i>My details</a></li>
+                                    </c:otherwise>
+                                </c:choose>
+                                <li>
+                                    <form method="post" action="${ctx}/logout">
+                                        <button class="dropdown-item" type="submit"><i class="bi bi-box-arrow-right me-2"></i>Sign out</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    </c:otherwise>
+                </c:choose>
             </ul>
         </div>
     </div>
@@ -48,6 +79,7 @@
                 <a class="nav-link ${activePage == 'admin-products' ? 'active' : ''}" href="${ctx}/admin/products"><i class="bi bi-basket2"></i> Products</a>
                 <a class="nav-link ${activePage == 'admin-customers' ? 'active' : ''}" href="${ctx}/admin/customers"><i class="bi bi-people"></i> Customers</a>
                 <a class="nav-link ${activePage == 'admin-orders' ? 'active' : ''}" href="${ctx}/admin/orders"><i class="bi bi-receipt"></i> Orders</a>
+                <a class="nav-link ${activePage == 'admin-custom' ? 'active' : ''}" href="${ctx}/admin/custom-orders"><i class="bi bi-stars"></i> Custom cakes</a>
             </nav>
         </div>
     </div>
