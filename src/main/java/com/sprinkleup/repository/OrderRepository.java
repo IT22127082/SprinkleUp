@@ -17,6 +17,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order> findTop5ByOrderByCreatedAtDesc();
 
+    List<Order> findByCustomerOrderByCreatedAtDesc(Customer customer);
+
     long countByStatus(OrderStatus status);
 
     boolean existsByCustomer(Customer customer);

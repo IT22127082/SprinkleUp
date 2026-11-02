@@ -3,22 +3,45 @@ package com.sprinkleup.config;
 import com.sprinkleup.model.*;
 import com.sprinkleup.repository.CustomerRepository;
 import com.sprinkleup.repository.ProductRepository;
+import com.sprinkleup.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-/** Fills an empty database with a starter menu and a demo customer. */
+/**
+ * Fills an empty database with a starter menu, a staff account and a demo
+ * customer account. The emails and passwords come from application.properties.
+ */
 @Component
 public class DataSeeder implements CommandLineRunner {
 
     private final ProductRepository products;
     private final CustomerRepository customers;
+    private final UserRepository users;
+    private final PasswordEncoder encoder;
+    private final String adminEmail;
+    private final String adminPassword;
+    private final String demoEmail;
+    private final String demoPassword;
 
-    public DataSeeder(ProductRepository products, CustomerRepository customers) {
+    public DataSeeder(ProductRepository products, CustomerRepository customers, UserRepository users,
+                      PasswordEncoder encoder,
+                      @Value("${sprinkleup.admin.email}") String adminEmail,
+                      @Value("${sprinkleup.admin.password}") String adminPassword,
+                      @Value("${sprinkleup.demo.email}") String demoEmail,
+                      @Value("${sprinkleup.demo.password}") String demoPassword) {
         this.products = products;
         this.customers = customers;
+        this.users = users;
+        this.encoder = encoder;
+        this.adminEmail = adminEmail;
+        this.adminPassword = adminPassword;
+        this.demoEmail = demoEmail;
+        this.demoPassword = demoPassword;
     }
 
     @Override
@@ -47,8 +70,15 @@ public class DataSeeder implements CommandLineRunner {
                             new BigDecimal("280"), 14, "Vanilla custard", false));
             products.saveAll(menu);
         }
-        if (customers.count() == 0) {
-            customers.save(new Customer("Nethmi Perera", "nethmi@example.com", "0771234567", "12 Galle Road, Colombo 03"));
+        if (!users.existsByEmailIgnoreCase(adminEmail)) {
+            Admin admin = new Admin("Aish", adminEmail, "0112345678", "Head baker");
+            admin.setPassword(adminPassword, encoder);
+            users.save(admin);
+        }
+        if (!users.existsByEmailIgnoreCase(demoEmail)) {
+            Customer demo = new Customer("Nethmi Perera", demoEmail, "0771234567", "12 Galle Road, Colombo 03");
+            demo.setPassword(demoPassword, encoder);
+            customers.save(demo);
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.sprinkleup.service;
 
 import com.sprinkleup.dto.OrderForm;
+import com.sprinkleup.exception.NotFoundException;
 import com.sprinkleup.model.*;
 import com.sprinkleup.repository.OrderRepository;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,21 @@ public class OrderService extends AbstractCrudService<Order> {
     @Transactional(readOnly = true)
     public List<Order> findRecent() {
         return orders.findTop5ByOrderByCreatedAtDesc();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Order> findByCustomer(Customer customer) {
+        return orders.findByCustomerOrderByCreatedAtDesc(customer);
+    }
+
+    /** A customer can only open their own orders; anyone else's look like they don't exist. */
+    @Transactional(readOnly = true)
+    public Order findOwned(Long id, User user) {
+        Order order = findById(id);
+        if (!order.belongsTo(user)) {
+            throw new NotFoundException("Order #" + id + " was not found");
+        }
+        return order;
     }
 
     @Transactional(readOnly = true)

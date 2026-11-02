@@ -9,15 +9,12 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * A customer's order. The item list is private and only changed through
- * addItem(), which also takes the items out of stock (INFORMATION HIDING).
+ * An order for items from the menu. The item list is private and only changed
+ * through addItem(), which also takes the items out of stock (INFORMATION HIDING).
  */
 @Entity
 @Table(name = "orders")
-public class Order extends BaseEntity {
-
-    @ManyToOne(optional = false)
-    private Customer customer;
+public class Order extends AbstractOrder {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
@@ -35,10 +32,7 @@ public class Order extends BaseEntity {
     }
 
     public Order(Customer customer, LocalDate pickupDate, String notes) {
-        if (customer == null) {
-            throw new IllegalArgumentException("An order needs a customer");
-        }
-        this.customer = customer;
+        super(customer);
         this.pickupDate = pickupDate;
         setNotes(notes);
     }
@@ -48,6 +42,7 @@ public class Order extends BaseEntity {
         items.add(new OrderItem(this, product, quantity));
     }
 
+    @Override
     public BigDecimal getTotal() {
         return items.stream().map(OrderItem::getLineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
@@ -90,8 +85,36 @@ public class Order extends BaseEntity {
         return "Order #" + getId();
     }
 
-    public Customer getCustomer() {
-        return customer;
+    @Override
+    public String getKindLabel() {
+        return "Menu order";
+    }
+
+    @Override
+    public String getSummary() {
+        int count = getItemCount();
+        String first = items.isEmpty() ? "" : items.get(0).getProductName().split(" — ")[0];
+        return count + (count == 1 ? " item" : " items") + (first.isEmpty() ? "" : " · " + first + (items.size() > 1 ? " and more" : ""));
+    }
+
+    @Override
+    public String getStatusLabel() {
+        return status.getLabel();
+    }
+
+    @Override
+    public String getStatusBadge() {
+        return status.getBadge();
+    }
+
+    @Override
+    public LocalDate getDueDate() {
+        return pickupDate;
+    }
+
+    @Override
+    public String getCustomerPath() {
+        return "/account/orders/" + getId();
     }
 
     /** Read-only view: callers cannot add or remove items directly. */
