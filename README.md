@@ -1,8 +1,8 @@
 # SprinkleUp Bakery
 
-A web system for the SprinkleUp bakery. Customers browse the menu and place pickup orders; bakery staff manage products, customers and orders from an admin area.
+A web system for **Sprinkle up by Aish**. Customers browse the menu, place pickup orders and request custom cakes; bakery staff manage products, customers, orders and custom cake quotes from an admin area.
 
-**Stack:** Java 21, Spring Boot 3.5, JSP + JSTL, Bootstrap 5, MySQL 8 (Spring Data JPA / Hibernate).
+**Stack:** Java 21, Spring Boot 3.5, JSP + JSTL, Bootstrap 5, MySQL 8 (Spring Data JPA / Hibernate), BCrypt password hashing.
 
 ## Running it
 
@@ -11,38 +11,60 @@ A web system for the SprinkleUp bakery. Customers browse the menu and place pick
 3. In **Run > Edit Configurations**, add the environment variables `DB_USERNAME=root;DB_PASSWORD=<your MySQL password>`.
 4. Run `SprinkleUpApplication` and open <http://localhost:8080>.
 
-On first start a sample menu (10 products) and one demo customer are added.
+On first start a sample menu (10 products) and two accounts are added.
 
-| Page | URL |
-|---|---|
-| Shop menu | `/` |
-| Place an order | `/order` |
-| Admin dashboard | `/admin` |
-| Products | `/admin/products` |
-| Customers | `/admin/customers` |
-| Orders | `/admin/orders` |
+### Starter accounts
+
+| Role | Email | Password |
+|---|---|---|
+| Bakery staff (admin) | `admin@sprinkleup.lk` | `Admin@123` |
+| Demo customer | `nethmi@example.com` | `Customer@123` |
+
+These come from `application.properties`. Change them before showing the site to anyone else (set `ADMIN_PASSWORD` / `DEMO_PASSWORD` as environment variables).
+
+### Pages
+
+| Who | Page | URL |
+|---|---|---|
+| Everyone | Menu | `/` |
+| Everyone | Order from the menu (guest or signed in) | `/order` |
+| Everyone | Sign in / create account | `/login`, `/register` |
+| Customer | My orders and custom cakes | `/account` |
+| Customer | My details and password | `/account/edit` |
+| Customer | Request a custom cake | `/custom-orders/new` |
+| Staff | Dashboard | `/admin` |
+| Staff | Products, customers, orders | `/admin/products`, `/admin/customers`, `/admin/orders` |
+| Staff | Custom cake requests and quotes | `/admin/custom-orders` |
+
+Signed-out visitors who open a customer or staff page are sent to the sign-in page and brought back afterwards. Customers who open a staff page get a "Staff only" page. A customer can only see their own orders.
 
 ## CRUD operations
 
 | Entity | Create | Read | Update | Delete |
 |---|---|---|---|---|
 | Product | Add a cake, cupcake, bread or pastry | Menu, admin list with search and type filter | Edit details, price, stock, visibility | Remove (old orders keep a copy of the name and price) |
-| Customer | Admin form, or automatically when someone orders from the shop | List with search | Edit details | Delete (blocked if they have orders) |
-| Order | Shop order page, admin "new order" page | List with status filter, order detail page | Change status, pickup date, notes | Delete (stock is returned if the order was still open) |
+| Customer | Sign up, admin form, or automatically when a guest orders | Admin list with search, own account page | Edit details (admin or the customer), change password | Delete (blocked if they have orders) |
+| Order | Shop order page, admin "new order" page | Admin list with status filter, detail page, customer's own history | Change status, pickup date, notes | Delete (stock is returned if the order was still open) |
+| Custom cake request | Customer request form | Customer's own page, admin list with status filter | Customer edits until quoted; staff send a quote and move the status; customer accepts | Customer cancels; staff delete |
+
+### Custom cake flow
+
+`Awaiting quote` → (staff send a price) → `Quote ready` → (customer accepts) → `Accepted` → `Being made` → `Completed`.
+The customer can cancel until the cake is being made, and staff can decline. A request needs at least 3 days' notice, can only be edited before it is quoted, and cannot move to Accepted or later without a price.
 
 ## How the OOP concepts are applied
 
 | Concept | Where |
 |---|---|
-| **Abstraction** | `Product` and `BaseEntity` are abstract classes; `CrudService<T>` is an interface that the controllers depend on. |
-| **Inheritance** | `Cake`, `Cupcake`, `Bread`, `Pastry` extend `Product`; `Product`, `Customer`, `Order` extend `BaseEntity`; all services extend `AbstractCrudService`. |
-| **Polymorphism** | Each product type overrides `getUnitPrice()` (cake priced by weight, cupcakes per box, sliced bread adds a charge), `getSpecs()`, `applySpecs()` and `fillSpecs()`. The menu and orders treat every item as a `Product`. Services override `delete()` with their own rules. |
-| **Encapsulation** | All fields are `private`. Setters validate values (no negative price or stock, emails stored in lower case). Stock only changes through `reduceStock()` / `restock()`. |
-| **Information hiding** | `BaseEntity` has no `setId()`. `Order.getItems()` returns a read-only list, so items can only be added through `addItem()`, which also takes them out of stock. The `OrderItem` constructor is package-private. |
+| **Abstraction** | Abstract classes `BaseEntity`, `User`, `Product` and `AbstractOrder` describe what every subclass must provide; `CrudService<T>` is an interface the controllers depend on. |
+| **Inheritance** | `Customer` and `Admin` extend `User`; `Cake`, `Cupcake`, `Bread`, `Pastry` extend `Product`; `Order` and `CustomOrder` extend `AbstractOrder`; all of these extend `BaseEntity`. All services extend `AbstractCrudService`. |
+| **Polymorphism** | Each product type overrides `getUnitPrice()` (cake by weight, cupcakes per box, sliced bread adds a charge). `Order` and `CustomOrder` each override `getTotal()`, `getSummary()`, `getStatusLabel()` and `getDueDate()`, so the account page shows both in one list. `Admin` and `Customer` override `getHomePath()` to decide where they land after signing in. Services override `delete()` with their own rules. |
+| **Encapsulation** | All fields are `private`. Setters validate values (no negative price or stock, emails in lower case). Stock only changes through `reduceStock()` / `restock()`. A custom cake only changes stage through `quote()`, `accept()`, `cancel()` and `changeStatus()`, which refuse steps that don't make sense. |
+| **Information hiding** | `User` stores only a BCrypt hash of the password and has no getter for it; other classes can only call `checkPassword()`. `BaseEntity` has no `setId()`. `Order.getItems()` returns a read-only list, so items can only be added through `addItem()`. The `OrderItem` constructor is package-private. |
 
 ## Class diagram
 
-The PlantUML source is in [`docs/class-diagram.puml`](docs/class-diagram.puml). The same diagram in Mermaid (GitHub draws this automatically):
+The PlantUML source is in [`docs/class-diagram.puml`](docs/class-diagram.puml) (paste it into <https://www.plantuml.com/plantuml> to get an image). The same diagram in Mermaid, which GitHub draws automatically:
 
 ```mermaid
 classDiagram
@@ -50,21 +72,36 @@ classDiagram
         <<abstract>>
         -Long id
         -LocalDateTime createdAt
-        -LocalDateTime updatedAt
         +getId() Long
         +getDisplayName()* String
+    }
+    class User {
+        <<abstract>>
+        -String fullName
+        -String email
+        -String phone
+        -String passwordHash
+        +getRole()* UserRole
+        +getHomePath()* String
+        +setPassword(String, PasswordEncoder)
+        +checkPassword(String, PasswordEncoder) boolean
+    }
+    class Customer {
+        -String address
+        +getHomePath() String
+    }
+    class Admin {
+        -String jobTitle
+        +getHomePath() String
     }
     class Product {
         <<abstract>>
         -String name
         -BigDecimal basePrice
         -int stock
-        -boolean available
-        +getType()* ProductType
         +getUnitPrice()* BigDecimal
         +getSpecs()* String
         +reduceStock(int)
-        +restock(int)
     }
     class Cake {
         -Double weightKg
@@ -83,18 +120,31 @@ classDiagram
         -String filling
         -Boolean servedWarm
     }
-    class Customer {
-        -String fullName
-        -String email
-        -String phone
-        -String address
+    class AbstractOrder {
+        <<abstract>>
+        +getTotal()* BigDecimal
+        +getSummary()* String
+        +getStatusLabel()* String
+        +getDueDate()* LocalDate
+        +belongsTo(User) boolean
     }
     class Order {
         -OrderStatus status
         -LocalDate pickupDate
         +addItem(Product, int)
-        +getTotal() BigDecimal
         +changeStatus(OrderStatus)
+    }
+    class CustomOrder {
+        -String occasion
+        -double weightKg
+        -int tiers
+        -String design
+        -LocalDate neededBy
+        -BigDecimal quotedPrice
+        -CustomOrderStatus status
+        +quote(BigDecimal, String)
+        +accept()
+        +cancel()
     }
     class OrderItem {
         -String productName
@@ -113,32 +163,39 @@ classDiagram
         #entityName()* String
     }
 
+    BaseEntity <|-- User
     BaseEntity <|-- Product
-    BaseEntity <|-- Customer
-    BaseEntity <|-- Order
+    BaseEntity <|-- AbstractOrder
+    User <|-- Customer
+    User <|-- Admin
     Product <|-- Cake
     Product <|-- Cupcake
     Product <|-- Bread
     Product <|-- Pastry
-    Customer "1" <-- "*" Order
+    AbstractOrder <|-- Order
+    AbstractOrder <|-- CustomOrder
+    Customer "1" <-- "*" AbstractOrder : placed by
     Order "1" *-- "1..*" OrderItem
     OrderItem --> Product
     CrudService <|.. AbstractCrudService
     AbstractCrudService <|-- ProductService
     AbstractCrudService <|-- CustomerService
     AbstractCrudService <|-- OrderService
+    AbstractCrudService <|-- CustomOrderService
 ```
 
 ## Project layout
 
 ```
 src/main/java/com/sprinkleup
-├── model        entities: BaseEntity, Product (+4 subclasses), Customer, Order, OrderItem, enums
-├── dto          form objects: ProductForm, OrderForm
+├── model        BaseEntity; User → Customer, Admin; Product → Cake, Cupcake, Bread, Pastry;
+│                AbstractOrder → Order, CustomOrder; OrderItem; enums
+├── dto          form objects: ProductForm, OrderForm, CustomOrderForm, RegisterForm, ProfileForm
 ├── repository   Spring Data JPA interfaces
-├── service      CrudService, AbstractCrudService, Product/Customer/OrderService
-├── controller   Shop, Dashboard, Product, Customer, Order controllers
-└── config       DataSeeder (sample data)
+├── service      CrudService, AbstractCrudService, Product/Customer/Order/CustomOrder/Auth services
+├── controller   shop, auth, account, custom orders, admin controllers
+├── exception    NotFoundException, ForbiddenException
+└── config       AuthInterceptor (who is signed in, page access), WebConfig, DataSeeder
 src/main/webapp/WEB-INF/views   JSP pages
-src/main/resources/static       CSS and JavaScript
+src/main/resources/static       CSS, JavaScript and the logo
 ```

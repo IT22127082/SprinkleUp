@@ -13,6 +13,32 @@ package model {
     + {abstract} getDisplayName() : String
   }
 
+  abstract class User {
+    - fullName : String
+    - email : String
+    - phone : String
+    - passwordHash : String
+    + {abstract} getRole() : UserRole
+    + {abstract} getHomePath() : String
+    + isAdmin() : boolean
+    + hasAccount() : boolean
+    + setPassword(raw : String, encoder : PasswordEncoder)
+    + checkPassword(raw : String, encoder : PasswordEncoder) : boolean
+  }
+
+  class Customer {
+    - address : String
+    + getRole() : UserRole
+    + getHomePath() : String
+    + updateDetails(source : Customer)
+  }
+
+  class Admin {
+    - jobTitle : String
+    + getRole() : UserRole
+    + getHomePath() : String
+  }
+
   abstract class Product {
     - name : String
     - description : String
@@ -52,12 +78,14 @@ package model {
     + getUnitPrice() : BigDecimal
   }
 
-  class Customer {
-    - fullName : String
-    - email : String
-    - phone : String
-    - address : String
-    + updateDetails(source : Customer)
+  abstract class AbstractOrder {
+    + {abstract} getKindLabel() : String
+    + {abstract} getSummary() : String
+    + {abstract} getTotal() : BigDecimal
+    + {abstract} getStatusLabel() : String
+    + {abstract} getDueDate() : LocalDate
+    + {abstract} getCustomerPath() : String
+    + belongsTo(user : User) : boolean
   }
 
   class Order {
@@ -71,11 +99,37 @@ package model {
     + getItems() : List<OrderItem> {read-only}
   }
 
+  class CustomOrder {
+    - occasion : String
+    - flavour : String
+    - weightKg : double
+    - tiers : int
+    - eggless : boolean
+    - design : String
+    - messageOnCake : String
+    - neededBy : LocalDate
+    - budget : BigDecimal
+    - quotedPrice : BigDecimal
+    - bakerNote : String
+    - status : CustomOrderStatus
+    + updateRequest(form : CustomOrderForm)
+    + quote(price : BigDecimal, note : String)
+    + accept()
+    + cancel()
+    + changeStatus(newStatus : CustomOrderStatus)
+    + getTotal() : BigDecimal
+  }
+
   class OrderItem {
     - productName : String
     - quantity : int
     - unitPrice : BigDecimal
     + getLineTotal() : BigDecimal
+  }
+
+  enum UserRole {
+    CUSTOMER
+    ADMIN
   }
 
   enum ProductType {
@@ -94,6 +148,18 @@ package model {
     CANCELLED
     + isClosed() : boolean
   }
+
+  enum CustomOrderStatus {
+    REQUESTED
+    QUOTED
+    ACCEPTED
+    IN_PROGRESS
+    COMPLETED
+    DECLINED
+    CANCELLED
+    + isClosed() : boolean
+    + needsPrice() : boolean
+  }
 }
 
 package service {
@@ -108,41 +174,42 @@ package service {
     # {abstract} entityName() : String
     # save(entity : T) : T
   }
-  class ProductService {
-    + create(form : ProductForm) : Product
-    + update(id : Long, form : ProductForm) : Product
-    + delete(id : Long)
-  }
-  class CustomerService {
-    + create(c : Customer) : Customer
-    + update(id : Long, c : Customer) : Customer
-    + delete(id : Long)
-  }
-  class OrderService {
-    + placeOrder(form : OrderForm) : Order
-    + update(id, status, pickupDate, notes) : Order
-    + delete(id : Long)
+  class ProductService
+  class CustomerService
+  class OrderService
+  class CustomOrderService
+  class AuthService {
+    + signIn(email : String, password : String) : User
+    + register(form : RegisterForm) : Customer
+    + changePassword(...)
   }
 }
 
+BaseEntity <|-- User
 BaseEntity <|-- Product
-BaseEntity <|-- Customer
-BaseEntity <|-- Order
+BaseEntity <|-- AbstractOrder
+User <|-- Customer
+User <|-- Admin
 Product <|-- Cake
 Product <|-- Cupcake
 Product <|-- Bread
 Product <|-- Pastry
+AbstractOrder <|-- Order
+AbstractOrder <|-- CustomOrder
 
-Customer "1" <-- "0..*" Order : placed by
+Customer "1" <-- "0..*" AbstractOrder : placed by
 Order "1" *-- "1..*" OrderItem : contains
 OrderItem "0..*" --> "0..1" Product : refers to
 Order --> OrderStatus
+CustomOrder --> CustomOrderStatus
+User ..> UserRole
 Product ..> ProductType
 
 CrudService <|.. AbstractCrudService
 AbstractCrudService <|-- ProductService
 AbstractCrudService <|-- CustomerService
 AbstractCrudService <|-- OrderService
+AbstractCrudService <|-- CustomOrderService
 OrderService --> ProductService
 OrderService --> CustomerService
 @enduml
