@@ -5,7 +5,7 @@
 <jsp:include page="/WEB-INF/views/common/header.jsp"><jsp:param name="title" value="Thank you"/></jsp:include>
 
 <div class="su-panel su-thanks mx-auto">
-    <div class="su-thanks-icon"><i class="bi bi-check2-heart"></i></div>
+    <img class="su-thanks-logo" src="${ctx}/images/logo.png" alt="">
     <h1 class="su-page-title text-center">Thank you, ${fn:escapeXml(order.customer.fullName)}!</h1>
     <p class="text-center text-muted">Your order <strong>#${order.id}</strong> is in. We'll start baking soon.</p>
 

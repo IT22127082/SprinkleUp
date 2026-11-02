@@ -8,16 +8,18 @@
     <div class="row align-items-center g-4">
         <div class="col-lg-7">
             <span class="su-eyebrow">Baked fresh every morning</span>
-            <h1 class="su-hero-title">Life is short.<br>Add more <em>sprinkles</em>.</h1>
+            <h1 class="su-hero-title">Life is short.<br>Add more <em>sprinkles</em> <i class="bi bi-heart-fill su-title-heart" aria-hidden="true"></i></h1>
             <p class="lead mb-4">Celebration cakes, cupcakes, warm breads and pastries from the SprinkleUp kitchen.
                 Order online and pick up when it suits you.</p>
             <a class="btn btn-su btn-lg" href="${ctx}/order"><i class="bi bi-bag-heart me-1"></i> Start an order</a>
         </div>
         <div class="col-lg-5 d-none d-lg-block">
-            <div class="su-hero-art" aria-hidden="true">
-                <i class="bi bi-cake2"></i>
-                <span class="sprinkle s1"></span><span class="sprinkle s2"></span><span class="sprinkle s3"></span>
-                <span class="sprinkle s4"></span><span class="sprinkle s5"></span><span class="sprinkle s6"></span>
+            <div class="su-hero-art">
+                <img src="${ctx}/images/logo.png" alt="Sprinkle up by Aish logo">
+                <i class="bi bi-heart-fill su-heart su-heart-1" aria-hidden="true"></i>
+                <i class="bi bi-heart-fill su-heart su-heart-2" aria-hidden="true"></i>
+                <i class="bi bi-heart-fill su-heart su-heart-3" aria-hidden="true"></i>
+                <i class="bi bi-heart-fill su-heart su-heart-4" aria-hidden="true"></i>
             </div>
         </div>
     </div>

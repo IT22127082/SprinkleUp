@@ -3,7 +3,7 @@
 
 <footer class="su-footer">
     <div class="container d-flex flex-column flex-md-row justify-content-between gap-2">
-        <span><strong>SprinkleUp Bakery</strong> · Freshly baked, generously sprinkled.</span>
+        <span><strong>Sprinkle up by Aish</strong> · Freshly baked, generously sprinkled.</span>
         <span class="text-md-end">Open daily 7 am – 9 pm · 011 234 5678</span>
     </div>
 </footer>
